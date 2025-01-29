@@ -1,38 +1,38 @@
 # RAG PDF Reader
 
-## Descrição do Projeto
-O **RAG PDF Reader** é uma aplicação que implementa um sistema de Recuperação Aumentada por Geração (RAG), permitindo que usuários enviem arquivos PDF e façam perguntas sobre seu conteúdo. A resposta é gerada com base nas informações extraídas do documento, utilizando **modelos da OpenAI** para processar as consultas.
+## Project Description
+The **RAG PDF Reader** is an application that implements a **Retrieval-Augmented Generation (RAG)** system, allowing users to upload PDF files and ask questions about their content. The responses are generated based on the extracted information from the document using **OpenAI models** to process the queries.
 
-A aplicação funciona da seguinte maneira:
-1. O PDF enviado é processado e dividido em chunks de texto.
-2. Os chunks são armazenados em um **banco de dados vetorial** usando **ChromaDB**.
-3. Quando o usuário faz uma pergunta, a aplicação recupera os textos mais relevantes e os passa para um **modelo de linguagem da OpenAI**, que gera a resposta.
-4. A resposta é retornada ao usuário via API REST criada com **Flask**.
+### How It Works
+1. The uploaded PDF is processed and split into text chunks.
+2. The chunks are stored in a **vector database** using **ChromaDB**.
+3. When a user asks a question, the application retrieves the most relevant text chunks and passes them to an **OpenAI language model**, which generates a response.
+4. The response is returned to the user via a **Flask REST API**.
 
-## Requisitos
-Para executar este projeto, você precisa instalar as seguintes dependências:
+## Requirements
+To run this project, install the following dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-O arquivo `requirements.txt` inclui:
-- **Flask**: Framework para criar a API REST.
-- **python-dotenv**: Gerenciamento de variáveis de ambiente.
-- **langchain**: Biblioteca para interação com LLMs.
-- **langchain-openai**: Conector do LangChain para os modelos da OpenAI.
-- **langchain-community**: Componentes adicionais do LangChain.
-- **chromadb**: Banco de dados vetorial usado para buscas semânticas.
-- **PyPDF2**: Biblioteca para leitura de PDFs.
-- **sentence-transformers**: Modelo de embeddings para transformar textos em vetores.
+The `requirements.txt` file includes:
+- **Flask**: Framework for building the REST API.
+- **python-dotenv**: Environment variable management.
+- **langchain**: Library for interacting with LLMs.
+- **langchain-openai**: LangChain connector for OpenAI models.
+- **langchain-community**: Additional components for LangChain.
+- **chromadb**: Vector database for semantic searches.
+- **PyPDF2**: Library for reading PDFs.
+- **sentence-transformers**: Embedding model to convert text into vectors.
 
-## Como Usar
-1. Inicie a aplicação executando:
+## How to Use
+1. Start the application by running:
    ```bash
    python main.py
    ```
-2. Envie um arquivo PDF e uma pergunta para a rota `/read_pdf` via requisição **POST**.
-3. A aplicação processará o documento e responderá com base nas informações contidas no arquivo.
+2. Upload a PDF file and send a question to the `/read_pdf` endpoint via a **POST request**.
+3. The application will process the document and return a response based on the extracted information.
 
-Esse projeto pode ser expandido para suportar múltiplos documentos, diferentes formatos de arquivos e integrações com outros modelos de IA para respostas ainda mais precisas.
+This project can be expanded to support multiple documents, different file formats, and integrations with other AI models for even more precise responses.
 
