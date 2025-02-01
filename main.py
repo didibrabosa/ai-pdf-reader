@@ -24,6 +24,10 @@ chat_model = ChatOpenAI(
 
 client = chromadb.PersistentClient("./mycollection")
 
+collection = None
+
+pdf_path = "diego-barbosa-vasconcelos-dev.pdf"
+
 
 def read_pdf(file):
     return PdfReader(file)
@@ -81,3 +85,37 @@ def text_splitter(
         return text_chunks
     except Exception as ex:
         logger.error(f"Error in splitter a document: {ex}")
+
+
+@app.on_event("startup")
+def statup_event():
+    global collection
+
+    collection = create_collection("pdf_collection", client)
+
+    logger.debug("Reading PDF...")
+    reader = read_pdf(pdf_path)
+    if not reader:
+        return
+
+    logger.debug("Extratcting text from PDF...")
+    pdf_text = extract_text_from_pdf(reader)
+
+    logger.debug("Splinting text in chunks...")
+    text_chunks = text_splitter(pdf_text)
+
+    logger.debug("Adding chuncks to the database...")
+    add_to_collection(text_chunks, collection)
+
+    logger.info("Database populated with successfully!")
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    global collection
+    try:
+        if collection:
+            client.delete_collection("pdf_collection")
+            logger.debug("Database clean up!")
+    except Exception as ex:
+        logger.error(f"Error in clean up the database: {ex}")
