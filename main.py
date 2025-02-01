@@ -4,6 +4,7 @@ import getpass
 import uuid
 import os
 from langchain_openai import ChatOpenAI
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from fastapi import FastAPI
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
@@ -64,3 +65,19 @@ def add_to_collection(text_chunks, collection):
         )
     except Exception as ex:
         logger.error(f"Error to add in collection: {ex}")
+
+
+def text_splitter(
+        separators: list = None, chunk_size: int = 1000,
+        chunk_overlap: int = 200, content: str = None):
+    try:
+        text_splitter = RecursiveCharacterTextSplitter(
+            separators=separators,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap
+        )
+
+        text_chunks = text_splitter.create_documents([content])
+        return text_chunks
+    except Exception as ex:
+        logger.error(f"Error in splitter a document: {ex}")
