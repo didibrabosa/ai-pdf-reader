@@ -30,15 +30,18 @@ collection = None
 
 
 class QuestionRequest(BaseModel):
+    """Data model for a question request."""
     question: str
 
 
 def read_pdf(file):
+    """Read a PDF file and return its reader object."""
     result = PdfReader(file)
     return result
 
 
 def extract_text_from_pdf(reader):
+    """Extract and return text from each page of the PDF reader."""
     try:
         text = ""
         for page_num, page in enumerate(reader.pages):
@@ -54,6 +57,7 @@ def extract_text_from_pdf(reader):
 
 
 def split_text_from_pdf(text, chunk_size=1000, chunk_overlap=200):
+    """Split text into chunks with given size and overlap."""
     try:
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
@@ -67,6 +71,7 @@ def split_text_from_pdf(text, chunk_size=1000, chunk_overlap=200):
 
 
 def create_collection(collection_name, client):
+    """Create or retrieve a collection in the database."""
     try:
         collection = client.get_or_create_collection(
             name=collection_name, metadata={"hnsw:space": "cosine"})
@@ -76,6 +81,7 @@ def create_collection(collection_name, client):
 
 
 def add_to_collection(text_chunks, collection):
+    """Add text chunks to the collection with unique ids."""
     try:
         documents = []
         ids = []
@@ -96,6 +102,7 @@ def add_to_collection(text_chunks, collection):
 
 @app.on_event("startup")
 def startup_event():
+    """Startup event to populate the database with PDF chunks."""
     global collection
 
     collection = create_collection("pdf_collection", client)
@@ -119,6 +126,7 @@ def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
+    """Shutdown event to clean up the database."""
     global collection
     try:
         if collection:
@@ -130,6 +138,7 @@ def shutdown_event():
 
 @app.post("/ask_ai")
 async def ask_to_ai(request: QuestionRequest):
+    """Process a question and return an AI-generated answer."""
     try:
         question = request.question
 
