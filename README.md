@@ -46,8 +46,7 @@ The `requirements.txt` file includes:
    ```
 4. Ask a Question:
    Send a POST request to the /ask_ai endpoint with a JSON payload like:
-   ```
-   json
+   ```json
    {
      "question": "Your question about the PDF content"
    }
