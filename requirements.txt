@@ -1,8 +1,8 @@
-Flask
-python-dotenv
+fastapi
+uvicorn
+chromadb
+pydantic
+PyPDF2
 langchain
 langchain-openai
-langchain-community
-chromadb
-PyPDF2
-sentence-transformers
+python-dotenv
