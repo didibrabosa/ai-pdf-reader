@@ -1,13 +1,15 @@
+import uuid
 import logging
 import chromadb
 import getpass
-import uuid
 import os
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
+from PyPDF2 import PdfReader
 from langchain_openai import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from fastapi import FastAPI
-from PyPDF2 import PdfReader
 from dotenv import load_dotenv
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,31 +19,51 @@ if not os.environ.get("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = getpass.getpass(
         "Enter API key for OpenAI: ")
 
-app = FastAPI()
-
 chat_model = ChatOpenAI(
     model="gpt-4o-mini", api_key=os.environ["OPENAI_API_KEY"])
 
-client = chromadb.PersistentClient("./mycollection")
+app = FastAPI()
 
+pdf_path = "Harry Potter AI.pdf"
+client = chromadb.PersistentClient("./mycollection")
 collection = None
 
-pdf_path = "diego-barbosa-vasconcelos-dev.pdf"
+
+class QuestionRequest(BaseModel):
+    question: str
 
 
 def read_pdf(file):
-    return PdfReader(file)
+    result = PdfReader(file)
+    return result
 
 
 def extract_text_from_pdf(reader):
     try:
         text = ""
-        for page_num in range(len(reader.pages)):
-            page = reader.pages[page_num]
-            text += page.extract_text() or ""
+        for page_num, page in enumerate(reader.pages):
+            extract_text = page.extract_text()
+            if extract_text:
+                text += extract_text + "\n\n"
+            else:
+                logger.warning(f"Text not found {page_num}")
+
         return text
     except Exception as ex:
         logger.error(f"Error in extract text form pdf: {ex}")
+
+
+def split_text_from_pdf(text, chunk_size=1000, chunk_overlap=200):
+    try:
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            separators=[". ", "... ", ", ", "! ", "? ", "\n\n", "\n", " ", ""],
+        )
+
+        return text_splitter.split_text(text)
+    except Exception as ex:
+        logger.error(f"Error in splitter a document: {ex}")
 
 
 def create_collection(collection_name, client):
@@ -61,34 +83,19 @@ def add_to_collection(text_chunks, collection):
         for idx, text in enumerate(text_chunks):
             random_id = str(uuid.uuid4())
             ids.append(f"chunk_id{idx}_unique_id_{random_id}")
-            documents.append(text.pages_content)
+            documents.append(text)
 
         collection.add(
             documents=documents,
             ids=ids
         )
+        print(f"Added {len(documents)} chunks to the collection.")
     except Exception as ex:
         logger.error(f"Error to add in collection: {ex}")
 
 
-def text_splitter(
-        separators: list = None, chunk_size: int = 1000,
-        chunk_overlap: int = 200, content: str = None):
-    try:
-        text_splitter = RecursiveCharacterTextSplitter(
-            separators=separators,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
-
-        text_chunks = text_splitter.create_documents([content])
-        return text_chunks
-    except Exception as ex:
-        logger.error(f"Error in splitter a document: {ex}")
-
-
 @app.on_event("startup")
-def statup_event():
+def startup_event():
     global collection
 
     collection = create_collection("pdf_collection", client)
@@ -98,13 +105,13 @@ def statup_event():
     if not reader:
         return
 
-    logger.debug("Extratcting text from PDF...")
+    logger.debug("Extracting text from PDF...")
     pdf_text = extract_text_from_pdf(reader)
 
-    logger.debug("Splinting text in chunks...")
-    text_chunks = text_splitter(pdf_text)
+    logger.debug("Spliting text in chunks...")
+    text_chunks = split_text_from_pdf(pdf_text)
 
-    logger.debug("Adding chuncks to the database...")
+    logger.debug("Adding chunks to the database...")
     add_to_collection(text_chunks, collection)
 
     logger.info("Database populated with successfully!")
@@ -119,3 +126,28 @@ def shutdown_event():
             logger.debug("Database clean up!")
     except Exception as ex:
         logger.error(f"Error in clean up the database: {ex}")
+
+
+@app.post("/ask_ai")
+async def ask_to_ai(request: QuestionRequest):
+    try:
+        question = request.question
+
+        results = collection.query(
+            query_texts=[question],
+            n_results=3
+        )
+        print(results)
+
+        relevant_texts = [
+            result[0] for result in results['documents']]
+
+        context = " ".join(relevant_texts)
+
+        response = chat_model(context + question)
+
+        return {"answer": response.content}
+
+    except Exception as ex:
+        logger.error(f"Error while asking question: {ex}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
