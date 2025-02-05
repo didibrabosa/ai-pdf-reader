@@ -35,10 +35,10 @@ The `requirements.txt` file includes:
 - **pydantic**: For data validation.
 
 ## How to Use
-1. Set Up Your API Key:
-    Create a .env file or set the environment variable OPENAI_API_KEY with your OpenAI API key.
+1. Set Up Your API Key: 
+    Create a .env file or set the environment variable OPENAI_API_KEY with your OpenAI API key. 
     If not set, the application will prompt you to enter the key at startup.
-2. Select a PDF:
+2. Select a PDF: 
    Choose a PDF of your choice and reference the path or use the example bellow.
 3. Start the application by running:
    ```bash
