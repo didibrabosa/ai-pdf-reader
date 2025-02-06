@@ -6,6 +6,9 @@ logger = logging.getLogger(__name__)
 
 
 class PdfReaderStorge():
+
+    # Isso aqui deveria estar dentro de um construtor, sendo injetado via parametro.
+    # Ja conversamos sobre isso, como foi que fizemos com o client do postgres nas outras Storages? Aqui não vai ser diferente
     client = chromadb.PersistentClient("./mycollection")
 
     def create_collection(collection_name, client):
