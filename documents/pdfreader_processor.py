@@ -6,6 +6,11 @@ logger = logging.getLogger(__name__)
 
 
 class PdfReaderProcessor:
+    # Essa classe poderia estar melhor organizada
+    # O metodo read_pdf poderia salvar o conteúdo do arquivo dentro da classe
+    # e os métodos seguintes apenas utilizarem esse documento sem precisar receber como parametro
+
+
     pdf_path = "Harry_Potter_AI.pdf"
 
     def read_pdf(file):
