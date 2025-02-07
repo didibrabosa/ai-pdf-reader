@@ -2,24 +2,21 @@ import logging
 import chromadb
 import uuid
 
-logger = logging.getLogger(__name__)
 
+class PdfReaderStorage():
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.client = chromadb.PersistentClient("./mycollection")
+        self.collection = self.client.get_or_create_collection(
+            name="pdf_collection",
+            metadata={"hnsw:space": "cosine"}
+        )
 
-class PdfReaderStorge():
-    client = chromadb.PersistentClient("./mycollection")
-
-    def create_collection(collection_name, client):
-        """Create or retrieve a collection in the database."""
-        try:
-            collection = client.get_or_create_collection(
-                name=collection_name, metadata={"hnsw:space": "cosine"})
-            return collection
-        except Exception as ex:
-            logger.error(f"Error in creating a collection: {ex}")
-
-    def add_to_collection(text_chunks, collection):
+    def add_to_collection(self, text_chunks):
         """Add text chunks to the collection with unique ids."""
         try:
+            self.logger.info("Starting to add to the collection...")
+
             documents = []
             ids = []
 
@@ -28,10 +25,27 @@ class PdfReaderStorge():
                 ids.append(f"chunk_id{idx}_unique_id_{random_id}")
                 documents.append(text)
 
-            collection.add(
+            self.collection.add(
                 documents=documents,
                 ids=ids
             )
-            print(f"Added {len(documents)} chunks to the collection.")
+
+            self.logger.info(
+                f"Added {len(documents)} chunks to the collection.")
+
         except Exception as ex:
-            logger.error(f"Error to add in collection: {ex}")
+            self.logger.error(f"Error to add in collection: {ex}")
+
+    def query_collection(self, query_text):
+        try:
+            self.logger.info("Starting to querying the collection...")
+
+            results = self.collection.query(
+                query_texts=[query_text],
+                n_results=3
+            )
+            return results
+
+        except Exception as ex:
+            self.logger.error(f"Error to querying the collection: {ex}")
+        return None
