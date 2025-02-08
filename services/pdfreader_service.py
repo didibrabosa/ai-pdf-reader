@@ -1,5 +1,8 @@
+import os
 import logging
+from models.pdfreader_model import RelevantText, AIResponse
 from PyPDF2 import PdfReader
+from langchain_openai import ChatOpenAI
 from storages.pdfreader_storage import PdfReaderStorage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -9,6 +12,8 @@ class PdfReaderService:
         self.logger = logging.getLogger(__name__)
         self.pdf = "Harry_Potter_AI.pdf"
         self.storage = storage
+        self.chat_model = ChatOpenAI(
+            model="gpt-4o-mini", api_key=os.environ["OPENAI_API_KEY"])
 
     def read_pdf(self):
         """Read a PDF file and return its reader object."""
@@ -53,20 +58,35 @@ class PdfReaderService:
         except Exception as ex:
             self.logger.error(f"Error in splitter a document: {ex}")
 
-    def get_relevant_text(self, question):
-        """Get the most relevant texts for the question."""
+    def get_relevant_text(self, question) -> RelevantText:
+        """Get the most relevant texts for the question and ivoke AI."""
         try:
             self.logger.info("Catching the most relevant texts...")
 
             results = self.storage.query_collection(query_text=question)
 
-            if not results or "documents" not in results:
-                return None
+            if not results or not results.documents:
+                return RelevantText(texts=[], context="")
 
-            relevant_texts = [result[0] for result in results['documents']]
+            relevant_texts = [doc[0] for doc in results.documents]
+            context = " ".join(relevant_texts)
 
-            return " ".join(relevant_texts)
+            return RelevantText(texts=relevant_texts, context=context)
 
         except Exception as ex:
             self.logger.error(
                 f"Error in catching the most relevant texts: {ex}")
+
+    def invoke_ai(self, context, question) -> AIResponse:
+        """Invoke AI with the given context and question."""
+        try:
+            self.logger.info("Invoke AI...")
+
+            if not context:
+                return None
+
+            response = self.chat_model(context + question)
+            return AIResponse(content=response.content)
+
+        except Exception as ex:
+            self.logger.error(f"Error in invoking AI: {ex}")

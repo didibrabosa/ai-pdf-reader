@@ -1,6 +1,7 @@
 import logging
 import chromadb
 import uuid
+from models.pdfreader_model import QueryResult
 
 
 class PdfReaderStorage():
@@ -36,7 +37,8 @@ class PdfReaderStorage():
         except Exception as ex:
             self.logger.error(f"Error to add in collection: {ex}")
 
-    def query_collection(self, query_text):
+    def query_collection(self, query_text) -> QueryResult:
+        """Query the document collection for texts relevant to the query."""
         try:
             self.logger.info("Starting to querying the collection...")
 
@@ -44,8 +46,7 @@ class PdfReaderStorage():
                 query_texts=[query_text],
                 n_results=3
             )
-            return results
+            return QueryResult(documents=results["documents"])
 
         except Exception as ex:
             self.logger.error(f"Error to querying the collection: {ex}")
-        return None

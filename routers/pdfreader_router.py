@@ -1,17 +1,12 @@
 import logging
 from fastapi import APIRouter, HTTPException
 from models.pdfreader_model import PdfReaderModel
-from langchain_openai import ChatOpenAI
 from services.pdfreader_service import PdfReaderService
 from storages.pdfreader_storage import PdfReaderStorage
-import os
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
-
-chat_model = ChatOpenAI(
-    model="gpt-4o-mini", api_key=os.environ["OPENAI_API_KEY"])
 
 service = PdfReaderService(storage=PdfReaderStorage())
 
@@ -22,13 +17,13 @@ async def ask_to_ai(request: PdfReaderModel):
     try:
         logger.info("Starting question to AI...")
 
-        context = service.get_relevant_text(request.question)
+        relevant_text = service.get_relevant_text(request.question)
 
-        if not context:
+        if not relevant_text:
             raise HTTPException(
-                status_code=404, detail="None document relevent fouded.")
+                status_code=404, detail="No relevant document found.")
 
-        response = chat_model.invoke(context + request.question)
+        response = service.invoke_ai(relevant_text.context, request.question)
 
         return {"answer": response.content}
 
