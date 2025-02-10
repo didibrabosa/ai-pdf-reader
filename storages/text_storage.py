@@ -1,10 +1,10 @@
 import logging
 import chromadb
 import uuid
-from models.pdfreader_model import QueryResult
+from models.rag_model import QueryResult
 
 
-class PdfReaderStorage():
+class TextStorage():
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.client = chromadb.PersistentClient("./mycollection")

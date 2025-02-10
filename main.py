@@ -1,9 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from routers.pdfreader_router import router
-from storages.pdfreader_storage import PdfReaderStorage
-from services.pdfreader_service import PdfReaderService
+from routers.ai_router import router
+from storages.text_storage import TextStorage
+from services.text_processing_service import TextProcessingService
+from services.pdf_reader_service import PdfReaderService
+from services.ai_service import AIService
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,12 +19,15 @@ async def lifespan(app: FastAPI):
     "Lifecycle menagement for the application."
     logger.info("Starting the application...")
 
-    pdf_storage = PdfReaderStorage()
-    pdf_service = PdfReaderService(storage=pdf_storage)
+    pdf_storage = TextStorage()
+    ai_service = AIService()
+    pdf_service = PdfReaderService()
+    text_service = TextProcessingService(
+        storage=pdf_storage, ai_service=ai_service)
 
     reader = pdf_service.read_pdf()
     text = pdf_service.extract_text_from_pdf(reader)
-    text_chunks = pdf_service.split_text_from_pdf(text)
+    text_chunks = text_service.split_text_from_pdf(text)
 
     pdf_storage.add_to_collection(text_chunks)
 

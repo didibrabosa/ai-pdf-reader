@@ -1,14 +1,15 @@
 import logging
 from fastapi import APIRouter, HTTPException
-from models.pdfreader_model import PdfReaderModel
-from services.pdfreader_service import PdfReaderService
-from storages.pdfreader_storage import PdfReaderStorage
+from models.rag_model import PdfReaderModel
+from services.text_processing_service import TextProcessingService
+from services.ai_service import AIService
+from storages.text_storage import TextStorage
 
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-service = PdfReaderService(storage=PdfReaderStorage())
+service = TextProcessingService(storage=TextStorage(), ai_service=AIService())
 
 
 @router.post("/ask_ai")

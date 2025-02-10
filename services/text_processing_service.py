@@ -1,45 +1,15 @@
-import os
 import logging
-from models.pdfreader_model import RelevantText, AIResponse
-from PyPDF2 import PdfReader
-from langchain_openai import ChatOpenAI
-from storages.pdfreader_storage import PdfReaderStorage
+from models.rag_model import RelevantText, AIResponse
+from storages.text_storage import TextStorage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from services.ai_service import AIService
 
 
-class PdfReaderService:
-    def __init__(self, storage: PdfReaderStorage):
+class TextProcessingService:
+    def __init__(self, storage: TextStorage, ai_service: AIService):
         self.logger = logging.getLogger(__name__)
-        self.pdf = "Harry_Potter_AI.pdf"
         self.storage = storage
-        self.chat_model = ChatOpenAI(
-            model="gpt-4o-mini", api_key=os.environ["OPENAI_API_KEY"])
-
-    def read_pdf(self):
-        """Read a PDF file and return its reader object."""
-        self.logger.info("Starting to read the PDF...")
-
-        result = PdfReader(self.pdf)
-        return result
-
-    def extract_text_from_pdf(self, reader):
-        """Extract and return text from each page of the PDF reader."""
-        try:
-            self.logger.info("Starting to extract the text from PDF...")
-
-            text = ""
-            for page_num, page in enumerate(reader.pages):
-                extract_text = page.extract_text()
-
-                if extract_text:
-                    text += extract_text + "\n\n"
-                else:
-                    self.logger.warning(f"Text not found {page_num}")
-
-            return text
-
-        except Exception as ex:
-            self.logger.error(f"Error in extract text form pdf: {ex}")
+        self.ai_service = ai_service
 
     def split_text_from_pdf(self, text, chunk_size=1000, chunk_overlap=200):
         """Split text into chunks with given size and overlap."""
@@ -79,14 +49,4 @@ class PdfReaderService:
 
     def invoke_ai(self, context, question) -> AIResponse:
         """Invoke AI with the given context and question."""
-        try:
-            self.logger.info("Invoke AI...")
-
-            if not context:
-                return None
-
-            response = self.chat_model(context + question)
-            return AIResponse(content=response.content)
-
-        except Exception as ex:
-            self.logger.error(f"Error in invoking AI: {ex}")
+        return self.ai_service.invoke_ai(context, question)
