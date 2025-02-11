@@ -44,7 +44,7 @@ class TextStorage():
 
             results = self.collection.query(
                 query_texts=[query_text],
-                n_results=3
+                n_results=5
             )
             return QueryResult(documents=results["documents"])
 

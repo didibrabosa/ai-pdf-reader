@@ -17,9 +17,23 @@ class AIService:
             self.logger.info("Invoke AI...")
 
             if not context:
-                return None
+                self.logger.info(
+                    "No relevant context found. Returning default message.")
+                return AIResponse(
+                    response="Não encontrei informações relevantes")
 
-            response = self.chat_model(context + question)
+            prompt = f"""
+            Com base no seguinte contexto, responda à pergunta.
+            Se a resposta não estiver no contexto, diga:
+            "Não encontrei informações no documento para
+            responder a essa pergunta."
+
+            Contexto: {context}
+
+            Pergunta: {question}
+            """
+
+            response = self.chat_model(prompt)
             return AIResponse(content=response.content)
 
         except Exception as ex:

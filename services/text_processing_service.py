@@ -38,7 +38,7 @@ class TextProcessingService:
             if not results or not results.documents:
                 return RelevantText(texts=[], context="")
 
-            relevant_texts = [doc[0] for doc in results.documents]
+            relevant_texts = [doc for doc in results.documents[0]]
             context = " ".join(relevant_texts)
 
             return RelevantText(texts=relevant_texts, context=context)

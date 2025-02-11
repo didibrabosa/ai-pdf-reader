@@ -5,7 +5,7 @@ from PyPDF2 import PdfReader
 class PdfReaderService:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.pdf = "Harry_Potter_AI.pdf"
+        self.pdf = "Harry_Potter_AI4.pdf"
 
     def read_pdf(self):
         """Read a PDF file and return its reader object."""
